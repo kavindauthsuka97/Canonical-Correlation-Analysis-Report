@@ -1,0 +1,165 @@
+---
+title: "S16844 - CC Analysis"
+author: "Kavinda Uthsuka"
+date: "9/6/2021"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Install libraries
+```{r}
+#install.packages("tidyverse")
+#install.packages("ggplot2")
+#install.packages("ggplot2")
+#install.packages("GGally")
+#install.packages("CCA")
+#install.packages("CCP")
+#install.packages("candisc")
+#install.packages("skimr")
+library(tidyverse)
+library(ggplot2)
+library(GGally)
+library(CCA)
+library(CCP)
+library(candisc)
+library(skimr)
+```
+
+
+
+
+Import dataset
+```{r}
+fat <- read.csv("Fat_Supply_Quantity_Data.csv",header = TRUE)
+head(fat)
+```
+summary of "fat" dataset
+```{r}
+skim(fat)
+```
+set NA values to zero
+```{r}
+fat[is.na(fat)] <- 0
+```
+
+standardized the dataset
+```{r}
+st_fat <- apply(fat,2,scale)
+```
+
+Splits the varibales into two sets. First set is "Animal Resources"(ani_res) and second set is "Vegetative Resources"(veg_res).
+```{r}
+ani_res <- st_fat[,c('AnimalProducts','AnimalFats','Eggs','FishSeafood','Meat','Milk')]
+veg_res <- st_fat[,c('Cereals','Fruits','Oilcrops','Pulses','Spices','Treenuts','VegetalProducts','VegetableOils','Vegetables')]
+```
+
+Correlation between two sets
+```{r}
+matcor(ani_res,veg_res)
+```
+Canonical correlation model
+```{r}
+cc_model <- cc(ani_res,veg_res)
+```
+
+Canonical correlations
+```{r}
+cc_model$cor
+```
+
+Test the significance of canonical correlations
+```{r}
+rho <- cc_model$cor
+n <- dim(ani_res)[1]
+p <- dim(ani_res)[2]
+q <- dim(veg_res)[2]
+
+#Wilk's test
+p.asym(rho,n,p,q,tstat = "Wilks")
+```
+
+Lawley-Hotelling test
+```{r}
+p.asym(rho,n,p,q,tstat = "Hotelling")
+```
+
+Pillai's test
+```{r}
+p.asym(rho,n,p,q,tstat = "Pillai")
+```
+
+Roy's largest root test
+```{r}
+p.asym(rho,n,p,q,tstat = "Roy")
+```
+
+Test the independence between two sets of variables
+```{r}
+Wilks(cancor(ani_res,veg_res))
+```
+
+Significant canonical correlations
+```{r}
+cc_model$cor[1:4]
+```
+Squared canoncal correlations
+```{r}
+cc_model$cor[1:4]^2
+```
+
+
+Canonical coefficients of "ani_res"/"X" set
+```{r}
+cc_model$xcoef
+```
+
+Canonical coefficeints of "veg_res"/"Y" set
+```{r}
+cc_model$ycoef
+```
+Canonical loadings
+```{r}
+loadings <- comput(ani_res,veg_res,cc_model)
+```
+
+Correlation between "ani_res" variables and the canonical variables for "ani_res"
+```{r}
+loadings$corr.X.xscores
+```
+
+Correlations between "veg_res" variables and the canonical variables for "veg_res"
+```{r}
+loadings$corr.Y.yscores
+```
+
+Correlation between the "ani_res" variables and the canonical variate for "veg_res"
+```{r}
+loadings$corr.X.yscores
+```
+
+Correlation between the "veg_res" variables and the canonical variate for "ani_res"
+```{r}
+loadings$corr.Y.xscores
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
